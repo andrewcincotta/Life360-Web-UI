@@ -1,12 +1,14 @@
 import asyncio
 from aiohttp import ClientSession
 from life360 import Life360
+import os
 
 
 async def main():
-    # Replace with your actual Life360 Token. Instructions in README.
-    authorization = 'Bearer NEJBOUY0Q0EtRTkwNi00N0ZDLTlEOEEtQUFDOTIxMDk0MTc4'
+    # Load the authorization token from environment variable. See .env.example
+    authorization = f'Bearer {os.getenv("LIFE360_AUTHORIZATION")}'
 
+    # Initialize the Life360 API client with authorization
     async with ClientSession() as session:
         api = Life360(
             session=session,
