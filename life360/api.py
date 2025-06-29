@@ -10,11 +10,14 @@ import re
 import traceback
 from typing import Any, cast
 
-from curl_cffi.requests import (
-    Response,
-    RequestsError,
-    AsyncSession,
+from aiohttp import (
+    ClientConnectionError,
+    ClientError,
+    ClientResponse,
+    ClientResponseError,
+    ClientSession,
 )
+from aiohttp.typedefs import LooseHeaders
 
 from .const import CLIENT_TOKEN, HOST, USER_AGENT, HTTP_Error
 from .exceptions import (
@@ -26,8 +29,6 @@ from .exceptions import (
     RateLimited,
     Unauthorized,
 )
-
-LooseHeaders = dict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ _HEADERS = {
 }
 
 _TIMEOUT_EXCEPTIONS = (asyncio.TimeoutError, TimeoutError)
-#_RETRY_EXCEPTIONS = (ClientConnectionError, *_TIMEOUT_EXCEPTIONS)
+_RETRY_EXCEPTIONS = (ClientConnectionError, *_TIMEOUT_EXCEPTIONS)
 _RETRY_CLIENT_RESPONSE_ERRORS = (
     HTTP_Error.BAD_GATEWAY,
     HTTP_Error.SERVICE_UNAVAILABLE,
@@ -83,7 +84,6 @@ _RESP_TEXT_ALL_REDACTIONS = (
 
 def _retry(exc: Exception) -> bool:
     """Determine if request should be retried."""
-    return False
     if isinstance(exc, _RETRY_EXCEPTIONS):
         return True
     return (
@@ -114,7 +114,7 @@ class Life360:
 
     def __init__(
         self,
-        session: AsyncSession,
+        session: ClientSession,
         max_retries: int,
         authorization: str | None = None,
         *,
@@ -274,16 +274,16 @@ class Life360:
         kwargs["headers"] = _HEADERS | headers | kwargs.pop("headers", {})
 
         for attempt in range(1, self._max_attempts + 1):
-            resp: Response | None = None
+            resp: ClientResponse | None = None
             status: int | None = None
             try:
                 resp = cast(
-                    Response,
+                    ClientResponse,
                     await getattr(self._session, method)(url, **kwargs),
                 )
-                status = resp.status_code
+                status = resp.status
                 resp.raise_for_status()
-            except (RequestsError, *_TIMEOUT_EXCEPTIONS) as exc:
+            except (ClientError, *_TIMEOUT_EXCEPTIONS) as exc:
                 self._logger.debug(
                     "Request error: %s(%s), attempt %i: %s",
                     method.upper(),
@@ -298,16 +298,16 @@ class Life360:
                 try:
                     err_msg = cast(
                         Mapping[str, str],
-                        cast(Response, resp).json(),
+                        await cast(ClientResponse, resp).json(),
                     )["errorMessage"].lower()
-                except (AttributeError, RequestsError, KeyError, JSONDecodeError):
+                except (AttributeError, ClientError, KeyError, JSONDecodeError):
                     err_msg = self._redact(_format_exc(exc), _URL_REDACTIONS)
                 match status:
                     case HTTP_Error.UNAUTHORIZED:
                         authenticate = None
                         with suppress(KeyError):
                             authenticate = cast(
-                                LooseHeaders, cast(RequestsError, exc).request.headers
+                                LooseHeaders, cast(ClientResponseError, exc).headers
                             )["www-authenticate"]
                         raise Unauthorized(err_msg, authenticate) from exc
                     case HTTP_Error.FORBIDDEN:
@@ -318,7 +318,7 @@ class Life360:
                         try:
                             retry_after = float(
                                 cast(
-                                    LooseHeaders, cast(RequestsError, exc).headers
+                                    LooseHeaders, cast(ClientResponseError, exc).headers
                                 )["retry-after"]
                             )
                         except (KeyError, TypeError):
@@ -333,11 +333,11 @@ class Life360:
             if etag := resp.headers.get("l360-etag"):
                 self._etags[url] = etag
             try:
-                return resp.json()
-            except (RequestsError, JSONDecodeError) as exc:
+                return await resp.json()
+            except (ClientError, JSONDecodeError) as exc:
                 try:
-                    resp_ = resp.text
-                except RequestsError:
+                    resp_ = await resp.text()
+                except ClientError:
                     resp_ = str(resp)
                 self._logger.debug(
                     "While parsing response: %r: %s",
@@ -348,14 +348,14 @@ class Life360:
                     self._redact(_format_exc(exc), _URL_REDACTIONS)
                 ) from None
 
-    async def _dump_resp_text(self, resp: Response | None) -> None:
+    async def _dump_resp_text(self, resp: ClientResponse | None) -> None:
         """Dump response text to log."""
         if resp is None or self.verbosity < 2:
             return
         try:
-            if not (text := resp.text):
+            if not (text := await resp.text()):
                 return
-        except RequestsError:
+        except ClientError:
             return
         self._logger.debug(
             "Response data: %s",
@@ -367,7 +367,7 @@ class Life360:
             ),
         )
 
-    async def _dump_resp(self, resp: Response) -> None:
+    async def _dump_resp(self, resp: ClientResponse) -> None:
         """Dump response to log."""
         if self.verbosity < 1:
             return
