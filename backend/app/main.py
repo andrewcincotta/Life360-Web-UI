@@ -7,7 +7,7 @@ Authentication is handled via Bearer token in the Authorization header.
 """
 import os
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Set
+from typing import List, Dict, Any, Optional
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Depends, Header, Query, Path
@@ -118,7 +118,6 @@ class ErrorResponse(BaseModel):
 # ============================================================================
 
 app_state = {}
-active_sessions: Dict[str, ClientSession] = {}
 
 
 @asynccontextmanager
@@ -127,12 +126,9 @@ async def lifespan(app: FastAPI):
     # Startup: Create default session
     app_state["default_session"] = ClientSession()
     yield
-    # Shutdown: Clean up all sessions
+    # Shutdown: Clean up session
     if "default_session" in app_state:
         await app_state["default_session"].close()
-    for session in active_sessions.values():
-        await session.close()
-    active_sessions.clear()
 
 
 # ============================================================================
@@ -195,7 +191,7 @@ app.add_middleware(
 # Dependencies
 # ============================================================================
 
-def get_life360_api(
+async def get_life360_api(
     authorization: Optional[str] = Header(None, description="Bearer token for Life360 API")
 ) -> Life360:
     """
@@ -219,12 +215,17 @@ def get_life360_api(
             )
         token = f"Bearer {env_token}" if not env_token.startswith("Bearer ") else env_token
     
-    # Create or reuse session for this token
-    if token not in active_sessions:
-        active_sessions[token] = ClientSession()
+    # For now, use the default session for all requests
+    # In production, you might want to implement proper session management
+    session = app_state.get("default_session")
+    if not session:
+        raise HTTPException(
+            status_code=500,
+            detail="Session not initialized"
+        )
     
     return Life360(
-        session=active_sessions[token],
+        session=session,
         authorization=token,
         max_retries=3
     )
@@ -358,22 +359,6 @@ async def get_circles(api: Life360 = Depends(get_life360_api)) -> List[Dict[str,
     """
     try:
         return await api.get_circles()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/circles/{circle_id}",
-    summary="Get Circle Details",
-    tags=["Circles"],
-    response_model=Dict[str, Any]
-)
-async def get_circle(
-    circle_id: str = Path(..., description="The unique circle identifier"),
-    api: Life360 = Depends(get_life360_api)
-) -> Dict[str, Any]:
-    """Get detailed information about a specific circle including all members."""
-    try:
-        return await api.get_circle(circle_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -699,7 +684,9 @@ async def get_low_battery_members(
             if loc.location and loc.location.battery is not None and loc.location.battery <= threshold:
                 low_battery.append({
                     "circle": loc.circle_name,
+                    "circle_id": loc.circle_id,
                     "member": loc.member_name,
+                    "member_id": loc.member_id,
                     "battery": loc.location.battery,
                     "location": loc.location.name or "Unknown"
                 })

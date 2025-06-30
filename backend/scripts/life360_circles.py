@@ -3,8 +3,6 @@ from aiohttp import ClientSession
 from life360 import Life360
 
 
-# Must run this file from the root of the project with `python -m backend.scripts.life360_circles`
-
 async def main():
     # Ask the user for the Life360 authorization token
     authorization: str = "Bearer " + input("Enter your Life360 Bearer token: ")
