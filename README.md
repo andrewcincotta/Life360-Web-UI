@@ -54,30 +54,6 @@ To use this API, you need a Life360 access token. The easiest way to get one is:
 
 ## 📖 API Documentation
 
-Interactive docs are available at:
+Interactive docs (with pydantic type hinting and example schemas) are available at:
 - Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
 - ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
-
----
-
-## 🛠️ Example Usage
-
-**Get all circles:**
-```bash
-curl http://localhost:8000/circles
-```
-
-**Get members of a circle:**
-```bash
-curl http://localhost:8000/circles/<circle_id>/members
-```
-
-**Get your user info:**
-```bash
-curl http://localhost:8000/me
-```
-
-**Get specific member of a circle:**
-```bash
-curl http://localhost:8000/circles/<circle_id>/members/<member_id>
-```
