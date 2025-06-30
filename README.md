@@ -12,26 +12,26 @@ git clone https://www.github.com/andrewcincotta/life360-fast-api.git
 cd life360-fast-api
 ```
 
-### 2. Create a Virtual Environment (Recommended)
+### 2. Create a Virtual Environment + Install Requirements
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-### 3. Install Requirements
-```bash
-pip install -r requirements.txt
+# You must do this from the repo root, not the backend directory, to avoid breaking Life360 import!
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
 ```
 
 ### 4. Set Your Life360 Authorization Token
 Obtain your Life360 Bearer token and set it as an environment variable:
 ```bash
 export LIFE360_AUTHORIZATION="your_life360_bearer_token"
+# OR in repo root:
+cp .env.example .env
+# Replace auth key in .env with your own
 ```
 
 ### 5. Run the App
 ```bash
-python run.py
+python3 backend/run.py
 ```
 
 The API will be available at [http://localhost:8000](http://localhost:8000)

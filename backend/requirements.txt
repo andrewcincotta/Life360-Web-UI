@@ -23,7 +23,7 @@ typing_extensions==4.14.0
 uvicorn==0.35.0
 yarl==1.20.1
 
--e . # Local package for Life360 API integration
+-e backend # Local package for Life360 API integration
 
 # Optional dependencies for testing and future features
 httpx==0.26.0  # For testing
