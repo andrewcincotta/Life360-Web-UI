@@ -1,0 +1,137 @@
+/* MemberMarker.css - Member marker styles */
+
+.member-marker {
+  background: none;
+  border: none;
+}
+
+.member-marker-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  position: relative;
+  background: white;
+}
+
+.member-marker-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-marker-icon.default {
+  background: #667eea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.driving-indicator {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 16px;
+  background: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Popup styles */
+.member-popup .leaflet-popup-content {
+  width: 280px !important;
+  padding: 0;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f7fafc;
+}
+
+.popup-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.popup-name {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.popup-status {
+  margin: 0;
+  font-size: 13px;
+  color: #718096;
+}
+
+.popup-content {
+  padding: 16px;
+}
+
+.popup-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.popup-info:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  color: #718096;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #2d3748;
+  text-align: right;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+.info-value a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.info-value a:hover {
+  text-decoration: underline;
+}
+
+.battery-low {
+  color: #e53e3e;
+  font-weight: 600;
+}
+
+.battery-medium {
+  color: #d69e2e;
+  font-weight: 600;
+}
+
+.battery-high {
+  color: #38a169;
+  font-weight: 600;
+}
