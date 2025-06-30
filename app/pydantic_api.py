@@ -3,16 +3,13 @@ Life360 FastAPI Application
 A REST API for accessing Life360 data with proper type hints
 """
 
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-from typing import List, Dict, Any, Optional
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, WebSocket, WebSocketDisconnect
+from typing import List, Dict, Any, Optional, Set
 from datetime import datetime
 from pydantic import BaseModel, Field
-import os
 import asyncio
-from aiohttp import ClientSession
 from life360 import Life360
+from app.shared_state import get_life360_client
 
 # Pydantic models for request/response (simpler than full OOD)
 class CircleResponse(BaseModel):
@@ -61,47 +58,21 @@ class MemberLocationHistory(BaseModel):
     battery: Optional[int] = None
 
 
-# Global session management
-app_state = {}
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Manage application lifecycle - create and close aiohttp session"""
-    # Startup
-    app_state["session"] = ClientSession()
-    app_state["life360"] = Life360(
-        session=app_state["session"],
-        authorization=f'Bearer {os.getenv("LIFE360_AUTHORIZATION")}',
-        max_retries=3
-    )
-    yield
-    # Shutdown
-    await app_state["session"].close()
-
-
-# Create FastAPI app
+# Create FastAPI app without lifespan
 app = FastAPI(
-    title="Life360 API",
-    description="REST API for accessing Life360 location data",
-    version="1.0.0",
-    lifespan=lifespan
-)
-
-# Add CORS middleware for React frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    title="Life360 API V2",
+    description="REST API for accessing Life360 location data with Pydantic models",
+    version="2.0.0"
 )
 
 
 # Dependency to get Life360 API client
 def get_life360_api() -> Life360:
     """Get the Life360 API client instance"""
-    return app_state.get("life360")
+    client = get_life360_client()
+    if not client:
+        raise HTTPException(status_code=500, detail="Life360 client not initialized")
+    return client
 
 
 # Helper functions with type hints
@@ -176,7 +147,7 @@ def create_member_summary(member: Dict[str, Any]) -> MemberSummary:
 @app.get("/")
 async def root():
     """Health check endpoint"""
-    return {"status": "ok", "service": "Life360 API"}
+    return {"status": "ok", "service": "Life360 API", "version": "v2"}
 
 
 @app.get("/circles", response_model=List[CircleResponse])
@@ -358,9 +329,6 @@ async def start_tracking_member(
 
 
 # WebSocket endpoint for real-time updates (future enhancement)
-from fastapi import WebSocket, WebSocketDisconnect
-from typing import Set
-
 # Store active websocket connections
 active_connections: Set[WebSocket] = set()
 
@@ -393,8 +361,3 @@ async def not_found_handler(request, exc):
 @app.exception_handler(500)
 async def server_error_handler(request, exc):
     return {"error": "Internal server error"}
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)

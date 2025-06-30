@@ -2,55 +2,35 @@
 
 This API provides endpoints to interact with the Life360 service, including retrieving circles, members, and user information.
 """
-import os
-
-from life360 import Life360
-from contextlib import asynccontextmanager
 from typing import List, Dict, Any
 from fastapi import FastAPI, HTTPException, Depends
-from aiohttp import ClientSession
-
-# Global state
-app_state = {}
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Manage application lifecycle: create and cleanup HTTP session and Life360 API client."""
-    # Startup
-    app_state["session"] = ClientSession()
-    app_state["api"] = Life360(
-        session=app_state["session"],
-        authorization=f'Bearer {os.getenv("LIFE360_AUTHORIZATION")}',
-        max_retries=3
-    )
-    yield
-    # Shutdown
-    await app_state["session"].close()
+from app.shared_state import get_life360_client
+from life360 import Life360
 
 
 app = FastAPI(
-    title="Life360 API",
+    title="Life360 API V1",
     description="""
     This FastAPI app provides a RESTful interface to the Life360 API. 
     Use these endpoints to retrieve information about your circles, members, and account.
-    You must set the `LIFE360_AUTHORIZATION` environment variable with a valid Life360 Bearer token.
     """,
-    version="1.0.0",
-    lifespan=lifespan
+    version="1.0.0"
 )
 
 
 # Dependency
 def get_api() -> Life360:
     """Dependency to provide the Life360 API client."""
-    return app_state["api"]
+    client = get_life360_client()
+    if not client:
+        raise HTTPException(status_code=500, detail="Life360 client not initialized")
+    return client
 
 
 @app.get("/", summary="API Health Check", tags=["Utility"])
 async def root():
     """Check if the API is running."""
-    return {"status": "ok"}
+    return {"status": "ok", "version": "v1"}
 
 
 @app.get(
