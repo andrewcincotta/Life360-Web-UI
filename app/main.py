@@ -1,8 +1,5 @@
 """Minimal FastAPI app"""
-import os, sys
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
+import os
 
 from life360 import Life360
 from contextlib import asynccontextmanager
@@ -58,5 +55,25 @@ async def get_members(
 ) -> List[Dict[str, Any]]:
     try:
         return await api.get_circle_members(circle_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+@app.get("/me")
+async def get_me(api: Life360 = Depends(get_api)) -> Dict[str, Any]:
+    try:
+        return await api.get_me()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/circles/{circle_id}/members/{member_id}")
+async def get_member(
+    circle_id: str,
+    member_id: str,
+    api: Life360 = Depends(get_api)
+) -> Dict[str, Any]:
+    try:
+        return await api.get_circle_member(circle_id, member_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

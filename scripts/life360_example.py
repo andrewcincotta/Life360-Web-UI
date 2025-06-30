@@ -1,10 +1,9 @@
-import os, sys 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, ROOT)
+import os
 import asyncio
 from aiohttp import ClientSession
 from life360.api import Life360
 
+# Must run this file from the root of the project
 
 async def main():
     # Load the authorization token from environment variable. See .env.example
