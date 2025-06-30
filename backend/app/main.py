@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional, Set
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Depends, Header, Query
+from fastapi import FastAPI, HTTPException, Depends, Header, Query, Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
@@ -29,7 +29,7 @@ class CircleInfo(BaseModel):
     
     class Config:
         populate_by_name = True
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": "abc123-def456",
                 "name": "Family",
@@ -72,7 +72,7 @@ class MemberSummary(BaseModel):
     
     class Config:
         populate_by_name = True
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": "user123",
                 "firstName": "John",
@@ -368,7 +368,7 @@ async def get_circles(api: Life360 = Depends(get_life360_api)) -> List[Dict[str,
     response_model=Dict[str, Any]
 )
 async def get_circle(
-    circle_id: str = Field(..., description="The unique circle identifier"),
+    circle_id: str = Path(..., description="The unique circle identifier"),
     api: Life360 = Depends(get_life360_api)
 ) -> Dict[str, Any]:
     """Get detailed information about a specific circle including all members."""
@@ -387,7 +387,7 @@ async def get_circle(
     }
 )
 async def get_circle_members(
-    circle_id: str = Field(..., description="The unique circle identifier"),
+    circle_id: str = Path(..., description="The unique circle identifier"),
     api: Life360 = Depends(get_life360_api)
 ) -> List[MemberSummary]:
     """
@@ -411,8 +411,8 @@ async def get_circle_members(
     response_model=Dict[str, Any]
 )
 async def get_member(
-    circle_id: str = Field(..., description="The unique circle identifier"),
-    member_id: str = Field(..., description="The unique member identifier"),
+    circle_id: str = Path(..., description="The unique circle identifier"),
+    member_id: str = Path(..., description="The unique member identifier"),
     api: Life360 = Depends(get_life360_api)
 ) -> Dict[str, Any]:
     """Get detailed information about a specific member in a circle."""
