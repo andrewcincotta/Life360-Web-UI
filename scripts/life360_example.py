@@ -1,12 +1,14 @@
-from os import getenv
+import os, sys 
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, ROOT)
 import asyncio
 from aiohttp import ClientSession
-from life360 import Life360
+from life360.api import Life360
 
 
 async def main():
     # Load the authorization token from environment variable. See .env.example
-    authorization = f'Bearer {getenv("LIFE360_AUTHORIZATION")}'
+    authorization = f'Bearer {os.getenv("LIFE360_AUTHORIZATION")}'
 
     # Initialize the Life360 API client with authorization
     async with ClientSession() as session:

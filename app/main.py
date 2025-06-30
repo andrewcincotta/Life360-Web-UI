@@ -1,10 +1,14 @@
 """Minimal FastAPI app"""
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Depends
-from typing import List, Dict, Any
-import os
-from aiohttp import ClientSession
+import os, sys
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
 from life360 import Life360
+from contextlib import asynccontextmanager
+from typing import List, Dict, Any
+from fastapi import FastAPI, HTTPException, Depends
+from aiohttp import ClientSession
 
 # Global state
 app_state = {}
@@ -17,7 +21,8 @@ async def lifespan(app: FastAPI):
     app_state["session"] = ClientSession()
     app_state["api"] = Life360(
         session=app_state["session"],
-        authorization=f'Bearer {os.getenv("LIFE360_AUTHORIZATION")}'
+        authorization=f'Bearer {os.getenv("LIFE360_AUTHORIZATION")}',
+        max_retries=3
     )
     yield
     # Shutdown
