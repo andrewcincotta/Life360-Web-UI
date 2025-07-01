@@ -240,3 +240,5 @@ frontend/yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+startup.sh

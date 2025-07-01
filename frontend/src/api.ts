@@ -3,7 +3,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { CircleInfo, MemberSummary } from './types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.FAST_API_URL || 'http://localhost:8000';
 
 class Life360Api {
   private api: AxiosInstance;

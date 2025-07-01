@@ -56,6 +56,13 @@ const MemberMarker: React.FC<MemberMarkerProps> = ({ member }) => {
     return 'battery-high';
   };
 
+  const formatSpeed = () => {
+    const speed = member.location?.speed;
+    if (speed === undefined || speed === null || speed <= 0) return 'N/A';
+    const updatedSpeed = Math.round(speed);
+    return `${updatedSpeed} mph`;
+  }
+
   return (
     <Marker
       position={[member.location.latitude, member.location.longitude]}
@@ -103,7 +110,7 @@ const MemberMarker: React.FC<MemberMarkerProps> = ({ member }) => {
           {member.location.speed && (
             <div className="popup-info">
               <span className="info-label">⚡ Speed:</span>
-              <span className="info-value">{member.location.speed} mph</span>
+                <span className="info-value">{formatSpeed()}</span>
             </div>
           )}
 
