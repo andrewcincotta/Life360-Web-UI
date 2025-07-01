@@ -181,7 +181,7 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout, tileProvider }) => {
               attribution={tileProvider.attribution}
               url={getTileUrl(tileProvider)}
               maxZoom={tileProvider.maxZoom || 19}
-              subdomains={tileProvider.subdomains}
+              {...(tileProvider.subdomains && { subdomains: tileProvider.subdomains })}
             />
             
             <MapBounds members={activeMembers} />
@@ -197,3 +197,5 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout, tileProvider }) => {
 };
 
 export default MapView;
+
+console.log('Mapbox token exists:', !!process.env.REACT_APP_MAPBOX_TOKEN);
