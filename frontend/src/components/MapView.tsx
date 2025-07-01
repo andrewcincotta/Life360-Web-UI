@@ -1,27 +1,30 @@
 // MapView.tsx - Main map component
 
-import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import toast from 'react-hot-toast';
-import Life360Api from '../api';
-import { CircleInfo, MemberSummary } from '../types';
-import CircleSelector from './CircleSelector';
-import MemberMarker from './MemberMarker';
-import 'leaflet/dist/leaflet.css';
-import './MapView.css';
+import React, { useState, useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import toast from "react-hot-toast";
+import Life360Api from "../api";
+import { CircleInfo, MemberSummary } from "../types";
+import { TileProvider, getTileUrl } from "../mapProviders";
+import CircleSelector from "./CircleSelector";
+import MapStyleSelector from "./MapStyleSelector";
+import MemberMarker from "./MemberMarker";
+import "leaflet/dist/leaflet.css";
+import "./MapView.css";
 
 // Fix for default markers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
+  iconUrl: require("leaflet/dist/images/marker-icon.png"),
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
 interface MapViewProps {
   token: string;
   onLogout: () => void;
+  tileProvider: TileProvider;
 }
 
 // Component to handle map bounds
@@ -33,8 +36,8 @@ const MapBounds: React.FC<{ members: MemberSummary[] }> = ({ members }) => {
 
     const bounds = L.latLngBounds(
       members
-        .filter(m => m.location)
-        .map(m => [m.location!.latitude, m.location!.longitude])
+        .filter((m) => m.location)
+        .map((m) => [m.location!.latitude, m.location!.longitude])
     );
 
     if (bounds.isValid()) {
@@ -45,9 +48,11 @@ const MapBounds: React.FC<{ members: MemberSummary[] }> = ({ members }) => {
   return null;
 };
 
-const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
+const MapView: React.FC<MapViewProps> = ({ token, onLogout, tileProvider }) => {
   const [circles, setCircles] = useState<CircleInfo[]>([]);
-  const [selectedCircle, setSelectedCircle] = useState<string>('');
+  const [selectedCircle, setSelectedCircle] = useState<string>(() => {
+    return localStorage.getItem("selectedCircle") || "";
+  });
   const [members, setMembers] = useState<MemberSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,15 +75,27 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
     }
   }, [selectedCircle]);
 
+  useEffect(() => {
+    if (selectedCircle) {
+      localStorage.setItem("selectedCircle", selectedCircle);
+    }
+  }, [selectedCircle]);
+
   const loadCircles = async () => {
     try {
       const circleData = await apiRef.current.getCircles();
       setCircles(circleData);
-      if (circleData.length > 0) {
+      const savedCircle = localStorage.getItem("selectedCircle");
+      const savedCircleExists =
+        savedCircle && circleData.some((c) => c.id === savedCircle);
+
+      if (savedCircleExists) {
+        setSelectedCircle(savedCircle);
+      } else if (circleData.length > 0) {
         setSelectedCircle(circleData[0].id);
       }
     } catch (error) {
-      toast.error('Failed to load circles');
+      toast.error("Failed to load circles");
     } finally {
       setLoading(false);
     }
@@ -89,11 +106,13 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
     try {
       const memberData = await apiRef.current.getCircleMembers(circleId);
       setMembers(memberData);
-      
-      const activeCount = memberData.filter(m => m.status === 'Active' && m.location).length;
+
+      const activeCount = memberData.filter(
+        (m) => m.status === "Active" && m.location
+      ).length;
       toast.success(`Loaded ${activeCount} active members`);
     } catch (error) {
-      toast.error('Failed to load members');
+      toast.error("Failed to load members");
     } finally {
       setLoading(false);
     }
@@ -101,20 +120,22 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
 
   const refreshMembers = async () => {
     if (!selectedCircle || refreshing) return;
-    
+
     setRefreshing(true);
     try {
       const memberData = await apiRef.current.getCircleMembers(selectedCircle);
       setMembers(memberData);
     } catch (error) {
-      console.error('Failed to refresh members:', error);
+      console.error("Failed to refresh members:", error);
     } finally {
       setRefreshing(false);
     }
   };
 
   // Filter only active members with locations
-  const activeMembers = members.filter(m => m.status === 'Active' && m.location);
+  const activeMembers = members.filter(
+    (m) => m.status === "Active" && m.location
+  );
 
   if (loading && circles.length === 0) {
     return (
@@ -135,6 +156,7 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
             selectedCircle={selectedCircle}
             onCircleChange={setSelectedCircle}
           />
+          <MapStyleSelector currentPath={window.location.pathname} />
         </div>
         <div className="header-right">
           <button
@@ -143,7 +165,7 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
             className="refresh-button"
             title="Refresh member locations"
           >
-            {refreshing ? '⟳' : '↻'} Refresh
+            {refreshing ? "⟳" : "↻"} Refresh
           </button>
           <button onClick={onLogout} className="logout-button">
             Logout
@@ -158,7 +180,9 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
         <span className="stat-item">
           <strong>{members.length - activeMembers.length}</strong> offline
         </span>
-        {refreshing && <span className="stat-item refreshing">Updating...</span>}
+        {refreshing && (
+          <span className="stat-item refreshing">Updating...</span>
+        )}
       </div>
 
       <div className="map-wrapper">
@@ -174,12 +198,16 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
             className="leaflet-map"
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution={tileProvider.attribution}
+              url={getTileUrl(tileProvider)}
+              maxZoom={tileProvider.maxZoom || 19}
+              {...(tileProvider.subdomains && {
+                subdomains: tileProvider.subdomains,
+              })}
             />
-            
+
             <MapBounds members={activeMembers} />
-            
+
             {activeMembers.map((member) => (
               <MemberMarker key={member.id} member={member} />
             ))}

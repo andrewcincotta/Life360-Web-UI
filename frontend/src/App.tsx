@@ -4,11 +4,26 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import Auth from './components/Auth';
 import MapView from './components/MapView';
+import { tileProviders } from './mapProviders';
 import './App.css';
 
 function App() {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Determine which tile provider to use based on URL path
+  const getTileProvider = () => {
+    const path = window.location.pathname.toLowerCase();
+    
+    switch (path) {
+      case '/satellite':
+        return tileProviders.mapboxSatellite;
+      case '/dark':
+        return tileProviders.cartoDark;
+      default:
+        return tileProviders.cartoLight;
+    }
+  };
 
   useEffect(() => {
     // Check for stored token on mount
@@ -66,7 +81,11 @@ function App() {
       {!token ? (
         <Auth onAuthenticated={handleAuthenticated} />
       ) : (
-        <MapView token={token} onLogout={handleLogout} />
+        <MapView 
+          token={token} 
+          onLogout={handleLogout}
+          tileProvider={getTileProvider()}
+        />
       )}
     </div>
   );
