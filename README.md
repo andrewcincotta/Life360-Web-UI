@@ -1,6 +1,10 @@
-# Life360 FastAPI Wrapper
+# Life360 Web UI
+
+Web UI added. Will simplify initialization process and create docker build.
+Readme in the works.
 
 A minimal FastAPI app that exposes the Life360 API as a RESTful service. Easily retrieve your circles, members, and user info using simple HTTP endpoints.
+
 
 ---
 
@@ -8,8 +12,8 @@ A minimal FastAPI app that exposes the Life360 API as a RESTful service. Easily 
 
 ### 1. Clone the Repository
 ```bash
-git clone https://www.github.com/andrewcincotta/life360-fast-api.git
-cd life360-fast-api
+git clone https://www.github.com/andrewcincotta/Life360-Web-UI.git
+cd Life360-Web-UI
 ```
 
 ### 2. Create a Virtual Environment + Install Requirements
