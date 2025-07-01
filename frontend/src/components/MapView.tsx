@@ -6,7 +6,9 @@ import L from 'leaflet';
 import toast from 'react-hot-toast';
 import Life360Api from '../api';
 import { CircleInfo, MemberSummary } from '../types';
+import { TileProvider, getTileUrl } from '../mapProviders';
 import CircleSelector from './CircleSelector';
+import MapStyleSelector from './MapStyleSelector';
 import MemberMarker from './MemberMarker';
 import 'leaflet/dist/leaflet.css';
 import './MapView.css';
@@ -22,6 +24,7 @@ L.Icon.Default.mergeOptions({
 interface MapViewProps {
   token: string;
   onLogout: () => void;
+  tileProvider: TileProvider;
 }
 
 // Component to handle map bounds
@@ -45,7 +48,7 @@ const MapBounds: React.FC<{ members: MemberSummary[] }> = ({ members }) => {
   return null;
 };
 
-const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
+const MapView: React.FC<MapViewProps> = ({ token, onLogout, tileProvider }) => {
   const [circles, setCircles] = useState<CircleInfo[]>([]);
   const [selectedCircle, setSelectedCircle] = useState<string>('');
   const [members, setMembers] = useState<MemberSummary[]>([]);
@@ -135,6 +138,7 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
             selectedCircle={selectedCircle}
             onCircleChange={setSelectedCircle}
           />
+          <MapStyleSelector currentPath={window.location.pathname} />
         </div>
         <div className="header-right">
           <button
@@ -174,8 +178,10 @@ const MapView: React.FC<MapViewProps> = ({ token, onLogout }) => {
             className="leaflet-map"
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution={tileProvider.attribution}
+              url={getTileUrl(tileProvider)}
+              maxZoom={tileProvider.maxZoom || 19}
+              subdomains={tileProvider.subdomains}
             />
             
             <MapBounds members={activeMembers} />
