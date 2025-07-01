@@ -18,18 +18,20 @@ cd Life360-Web-UI
 
 ### 2. Create a Virtual Environment + Install Requirements
 ```bash
-# You must do this from the repo root, not the backend directory, to avoid breaking Life360 import!
+# Make sure to do this in the correct directory!
+cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 4. Set Your Life360 Authorization Token
 Obtain your Life360 Bearer token and set it as an environment variable:
 ```bash
 export LIFE360_AUTHORIZATION="your_life360_bearer_token"
-# OR in repo root:
-cp .env.example .env
+# OR in repo root (recommended to symlink to backend/ frontend/):
+cp .env.example backend/.env
+cp .env.example frontend/.env
 # Replace auth key in .env with your own
 ```
 
