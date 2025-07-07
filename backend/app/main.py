@@ -168,7 +168,7 @@ app = FastAPI(
     Please be mindful of Life360's rate limits. This API includes retry logic
     but excessive requests may result in temporary blocks.
     """,
-    version="2.0.0",
+    version="3.0.0",
     lifespan=lifespan,
     responses={
         500: {"model": ErrorResponse, "description": "Internal server error"},
@@ -180,7 +180,7 @@ app = FastAPI(
 # Add CORS middleware for frontend support
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # React dev servers
+    allow_origins=["http://localhost:3000", "http://localhost:3001"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
