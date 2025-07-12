@@ -2,7 +2,6 @@ import asyncio
 from aiohttp import ClientSession
 from life360 import Life360
 
-
 async def main():
     # Ask the user for the Life360 authorization token
     authorization: str = "Bearer " + input("Enter your Life360 Bearer token: ")
@@ -16,10 +15,14 @@ async def main():
         )
 
         circles = await api.get_circles()
-        
-        # test = await api.
-        
-        print(circles)
+
+        for circle in circles:
+            members = await api.get_circle_members(circle["id"])
+            for member in members:
+                print()
+                print("Member Info: ")
+                print(member)
+            print()
 
 if __name__ == "__main__":
     asyncio.run(main())

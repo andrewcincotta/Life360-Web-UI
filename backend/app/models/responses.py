@@ -2,7 +2,7 @@
 Pydantic models for API responses.
 """
 from typing import Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class CircleInfo(BaseModel):
@@ -29,18 +29,53 @@ class CircleInfo(BaseModel):
 
 class LocationData(BaseModel):
     """Location information for a member."""
-    latitude: float = Field(..., description="Latitude coordinate", ge=-90, le=90)
-    longitude: float = Field(..., description="Longitude coordinate", ge=-180, le=180)
-    accuracy: int = Field(..., description="Location accuracy in meters", ge=0)
+    latitude: float = Field(..., description="Latitude coordinate")
+    longitude: float = Field(..., description="Longitude coordinate") 
+    accuracy: int = Field(0, description="Location accuracy in meters", ge=0)
     name: Optional[str] = Field(None, description="Location name (e.g., 'Home', 'Work')")
     address1: Optional[str] = Field(None, description="Street address")
     address2: Optional[str] = Field(None, description="City, State")
-    battery: Optional[int] = Field(None, description="Device battery percentage (0-100)", ge=0, le=100)
-    timestamp: str = Field(..., description="Location update timestamp (Unix timestamp as string)")
-    speed: Optional[float] = Field(None, description="Current speed in mph", ge=0)
-    is_driving: Optional[bool] = Field(None, alias="isDriving", description="Whether member is currently driving")
+    battery: Optional[int] = Field(None, description="Device battery percentage (0-100)")
+    timestamp: str = Field("", description="Location update timestamp (Unix timestamp as string)")
+    speed: Optional[float] = Field(None, description="Current speed in mph (None if unknown)")
+    is_driving: Optional[bool] = Field(False, alias="isDriving", description="Whether member is currently driving")
+    
+    @field_validator('latitude')
+    @classmethod
+    def validate_latitude(cls, v):
+        """Ensure latitude is within valid range."""
+        if v < -90 or v > 90:
+            # Clamp to valid range instead of failing
+            return max(-90, min(90, v))
+        return v
+    
+    @field_validator('longitude')
+    @classmethod  
+    def validate_longitude(cls, v):
+        """Ensure longitude is within valid range."""
+        if v < -180 or v > 180:
+            # Clamp to valid range instead of failing
+            return max(-180, min(180, v))
+        return v
+    
+    @field_validator('battery')
+    @classmethod
+    def validate_battery(cls, v):
+        """Ensure battery is within valid range if provided."""
+        if v is not None:
+            return max(0, min(100, v))
+        return v
+    
+    @field_validator('speed', mode='before')
+    @classmethod
+    def validate_speed(cls, v):
+        """Convert negative speed values to None (unknown speed)."""
+        if v is not None and isinstance(v, (int, float)) and v < 0:
+            return None
+        return v
     
     class Config:
+        populate_by_name = True
         json_schema_extra = {
             "example": {
                 "latitude": 40.7128,
@@ -77,7 +112,7 @@ class MemberSummary(BaseModel):
         populate_by_name = True
         json_schema_extra = {
             "example": {
-                "id": "8e935520-60b3-47c5-8ddb-91c6fd1793bc",
+                "id": "fdasfdsafdsa-fdsafdsa-fdsa-fdsafs-fdsafsa",
                 "firstName": "John",
                 "lastName": "Doe",
                 "full_name": "John Doe",

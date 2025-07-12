@@ -81,7 +81,7 @@ app = FastAPI(
     All errors follow a consistent format with status codes and detailed messages.
     Check the response models for each endpoint.
     """,
-    version="2.0.0",
+    version="4.0.0",
     lifespan=lifespan,
     responses={
         401: {
