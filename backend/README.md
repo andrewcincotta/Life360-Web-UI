@@ -2,7 +2,8 @@
 
 A minimal FastAPI app that exposes the Life360 API as a RESTful service. Easily retrieve your circles, members, and user info using simple HTTP endpoints.
 
-![API Routes](../docs/images/api-routes.png)
+![API Documentation](docs/images/api-documentation.png)
+![API Routes](docs/images/api-routes.png)
 
 ---
 
@@ -20,7 +21,7 @@ pip install -r requirements.txt
 
 ### 2. Run the App
 ```bash
-python3 backend/run.py
+python3 -B run.py
 ```
 
 The API will be available at [http://localhost:8000](http://localhost:8000)
