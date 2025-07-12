@@ -61,7 +61,7 @@ async def get_circle_members(
     circle_id: str = Path(
         ..., 
         description="The unique circle identifier",
-        example="0fae83b9-1bb9-4149-9ff3-ba1239d26788"
+        example="abc123-def456-7890"
     ),
     api: Life360 = Depends(get_life360_api)
 ) -> List[MemberSummary]:

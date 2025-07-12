@@ -20,7 +20,7 @@ class CircleInfo(BaseModel):
         populate_by_name = True
         json_schema_extra = {
             "example": {
-                "id": "0fae83b9-1bb9-4149-9ff3-ba1239d26788",
+                "id": "abc123-def456-7890",
                 "name": "Family",
                 "createdAt": "1532204232"
             }
