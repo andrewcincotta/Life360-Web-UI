@@ -2,27 +2,23 @@
 
 A minimal FastAPI app that exposes the Life360 API as a RESTful service. Easily retrieve your circles, members, and user info using simple HTTP endpoints.
 
+![API Routes](../docs/images/api-routes.png)
 
 ---
 
 ## 🚀 Quickstart
 
-### 1. Clone the Repository
-```bash
-git clone https://www.github.com/andrewcincotta/Life360-Web-UI.git
-cd Life360-Web-UI
-```
-
-### 2. Create a Virtual Environment + Install Requirements
+### 1. Create a Virtual Environment + Install Requirements
 ```bash
 # Make sure to do this in the correct directory!
+# Failure to do so will break life360 package import
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Run the App
+### 2. Run the App
 ```bash
 python3 backend/run.py
 ```
