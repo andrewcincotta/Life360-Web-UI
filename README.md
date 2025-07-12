@@ -62,7 +62,7 @@ To get up and running, choose one of the following workflows:
 
 ### 2. Dockerized Build (Coming Soon)
 
-We are working on a Docker-based initialization and build process to simplify setup. Stay tuned!
+I am working on a Docker-based initialization and build process to simplify setup. Stay tuned!
 
 ---
 
@@ -77,18 +77,6 @@ We are working on a Docker-based initialization and build process to simplify se
 | • Map display with custom markers (avatars, battery, driving status) |                                      |
 | • Circle selector and realtime refresh                               |                                      |
 | • Light/dark/satellite map modes                                     |                                      |
-
----
-
-## 🎨 Screenshots
-
-### Login Screen
-
-![Login](docs/images/login.png)
-
-### Map View
-
-![Map View](docs/images/map-view.png)
 
 ---
 
@@ -109,7 +97,7 @@ For API reference, visit the running service at:
 1. Create feature branches off `main`.
 2. Follow coding standards and add tests where applicable.
 3. Submit pull requests for review.
-4. Ensure CI checks pass before merging.
+4. Ensure CI checks pass before merging (when I create a pipeline).
 
 ---
 
